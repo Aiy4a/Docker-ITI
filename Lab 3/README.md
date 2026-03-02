@@ -1,5 +1,4 @@
 
-```markdown
 # Lab 3 – Docker Private Registry with Nginx Alpine
 # Part 1
 
