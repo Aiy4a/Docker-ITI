@@ -114,7 +114,18 @@ cd wordpress-compose
 
 ![](images/image02.png)
 
----
+
+- **services:** → Top-level key that lists all containers.
+  - **db (MySQL service):**
+    - `image: mysql:5.7` → Pulls the official MySQL 5.7 image.
+    - `environment:` → Sets required variables (e.g., `MYSQL_ROOT_PASSWORD`) so MySQL can start securely.
+    - `volumes:` → Maps a host folder (`./mysql-data`) to `/var/lib/mysql` inside the container, ensuring database data persists.
+  - **wordpress (WordPress service):**
+    - `image: wordpress:latest` → Pulls the latest WordPress image.
+    - `ports:` → Maps host port 8080 to container port 80, so WordPress is accessible at `http://localhost:8080`.
+    - `environment:` → Provides DB connection details (host, user, password) so WordPress can talk to MySQL.
+    - `depends_on:` → Ensures the database container starts before WordPress.
+
 
 ## Step 3: Start the Application
 ```bash
