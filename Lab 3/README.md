@@ -112,9 +112,9 @@ cd wordpress-compose
 
 ## Step 2: Write the `docker-compose.yml`
 # **VIP**
-# mysql 5.7 version was incompatible with wordpress:latest
-# wordpress couldn't access the database 
-# when using mysql higher version as shown, wordpress accessed successfully
+mysql 5.7 version was incompatible with wordpress:latest
+wordpress couldn't access the database 
+when using mysql higher version as shown, wordpress accessed successfully
 
 ![](images/image02.png)
 
