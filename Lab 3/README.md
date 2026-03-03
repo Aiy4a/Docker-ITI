@@ -158,4 +158,102 @@ docker ps
 ---
 
 
+# Part 3 – Deploy Flask App with Private Registry and Nginx
 
+This lab demonstrates how to:
+1. **Pushing the custom Flask image** (`iti-flask-lab2`) to a private Docker registry.
+2. **Running the image with Docker Compose**, pulling it from the registry.
+3. **Exposing the Flask app on port 8080** for direct access.
+4. **Placing Nginx in front** of the Flask app as a reverse proxy, serving it on port 80.
+
+---
+
+## 🛠 Step 1: Push Flask Image to Private Registry
+The already built  Flask image in **Lab 2** was `iti-flask-lab2`.
+
+```bash
+# Tag the image for the private registry (running on localhost:5000)
+docker tag iti-flask-lab2:latest localhost:5000/iti-flask-lab2:latest
+
+# Push the image to the registry
+docker push localhost:5000/iti-flask-lab2:latest
+
+# Verify the image is stored in the registry
+curl http://localhost:5000/v2/_catalog
+```
+![](images/image51.png)
+- `docker tag` → re-labels the image with the registry address.  
+- `docker push` → uploads the image to the registry.  
+- `curl` → confirms the registry catalog contains `iti-flask-lab2`.
+
+---
+
+## Step 2: Create Docker Compose File
+Create `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  flask-app:
+    image: localhost:5000/iti-flask-lab2:latest
+    expose:
+      - "5000"
+    ports:
+      - "8080:5000"
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - flask-app
+```
+
+- `flask-app` → pulls from private registry, exposes port 5000, maps host port 8080.  
+- `nginx` → listens on port 80, uses a mounted config file, depends on Flask.  
+
+---
+
+## Step 3: Configure Nginx
+Create `nginx.conf` in the same directory:
+
+```nginx
+server {
+    listen 80;
+
+    location / {
+        proxy_pass http://flask-app:5000;
+    }
+}
+```
+
+- `proxy_pass` → forwards requests to the Flask container on port 5000.  
+- `flask-app` → service name resolved automatically by Docker Compose networking.  
+
+---
+
+## Step 4: Run and Test
+Start the stack:
+
+```bash
+docker compose up -d
+```
+
+Check logs:
+
+```bash
+docker compose logs flask-app
+docker compose logs nginx
+```
+
+Test endpoints:
+- Direct Flask: `http://localhost:8080`  
+- Through Nginx: `http://localhost`
+
+---
+
+
+-
