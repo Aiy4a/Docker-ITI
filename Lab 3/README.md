@@ -168,28 +168,42 @@ This lab demonstrates how to:
 
 ---
 
-## 🛠 Step 1: Push Flask Image to Private Registry
+## Step 1: Push Flask Image to Private Registry
 The already built  Flask image in **Lab 2** was `iti-flask-lab2`.
-
-```bash
-# Tag the image for the private registry (running on localhost:5000)
-docker tag iti-flask-lab2:latest localhost:5000/iti-flask-lab2:latest
-
-# Push the image to the registry
-docker push localhost:5000/iti-flask-lab2:latest
-
-# Verify the image is stored in the registry
-curl http://localhost:5000/v2/_catalog
-```
 ![](images/image51.png)
+
 - `docker tag` → re-labels the image with the registry address.  
 - `docker push` → uploads the image to the registry.  
-- `curl` → confirms the registry catalog contains `iti-flask-lab2`.
+- `curl` → confirms the registry catalog contains `flask-app`.
+---
+
+## Step 2: Run Flask App with Compose (Before Nginx)
+Create `docker-compose.yml`:
+
+```yaml
+services:
+  flask-app:
+    image: localhost:5000/iti-flask-lab2:latest
+    ports:
+      - "8080:5000"
+```
+![](images/image52.png)
+
+- `ports: 8080:5000` → maps host port 8080 to container port 5000.  
+- This allows you to access the Flask app directly at `http://localhost:8080`.  
+
+Run it:
+```bash
+docker compose up -d
+```
+![](images/image53.png)
+Test:
+![](images/image54.png)
 
 ---
 
-## Step 2: Create Docker Compose File
-Create `docker-compose.yml`:
+## Step 3: Add Nginx in Front
+Now extend `docker-compose.yml` to include Nginx:
 
 ```yaml
 version: '3.8'
@@ -199,8 +213,6 @@ services:
     image: localhost:5000/iti-flask-lab2:latest
     expose:
       - "5000"
-    ports:
-      - "8080:5000"
 
   nginx:
     image: nginx:latest
@@ -212,12 +224,9 @@ services:
       - flask-app
 ```
 
-- `flask-app` → pulls from private registry, exposes port 5000, maps host port 8080.  
-- `nginx` → listens on port 80, uses a mounted config file, depends on Flask.  
-
 ---
 
-## Step 3: Configure Nginx
+## 🛠 Step 4: Configure Nginx
 Create `nginx.conf` in the same directory:
 
 ```nginx
@@ -235,7 +244,7 @@ server {
 
 ---
 
-## Step 4: Run and Test
+## 🛠 Step 5: Run and Test
 Start the stack:
 
 ```bash
@@ -250,10 +259,7 @@ docker compose logs nginx
 ```
 
 Test endpoints:
-- Direct Flask: `http://localhost:8080`  
-- Through Nginx: `http://localhost`
+- Direct Flask (before Nginx): `http://localhost:8080`  
+- Through Nginx (after adding Nginx): `http://localhost`  
 
----
-
-
--
+--
